@@ -9,8 +9,9 @@ namespace HolidayTrip.Models
 {
     public class PackageCollection
     {
-        //[BsonId]
-        //public ObjectId Id { get; set; }
+        [BsonId]
+        [BsonIgnoreIfDefault]
+        public ObjectId Id { get; set; }
         [BsonElement]
         public string Title { get; set; }
         [BsonElement]

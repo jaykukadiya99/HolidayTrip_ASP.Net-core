@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using HolidayTrip.Models;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace HolidayTrip.Controllers
 {
@@ -26,49 +27,51 @@ namespace HolidayTrip.Controllers
         [HttpGet]
         public ActionResult Get()
         {
-
             mongoCollection = GetMongoCollection();
-
             var result = mongoCollection.Find(FilterDefinition<PackageCollection>.Empty).ToList();
             return Ok(result);
         }
 
-        //[HttpPost]
-        //public ActionResult GetOne(int value)
-        //{
-
-        //    mongoCollection = GetMongoCollection();
-        //    var result = mongoCollection.Find<PackageCollection>(p => p.AgentId == value.ToString()).ToList();
-        //    return Ok(result);
-        //}
-
-        // GET: api/Package/5
+        //GET: api/Agent/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult Get(String id)
         {
-            return "value";
+            mongoCollection = GetMongoCollection();
+            var objId = new ObjectId(id);
+            var result = mongoCollection.Find<PackageCollection>(lm => lm.Id == objId).FirstOrDefault();
+
+            return Ok(result.Id);
         }
 
         // POST: api/Package
         [HttpPost]
-        public void Post(PackageCollection value)
+        public ActionResult Post(PackageCollection value)
         {
             mongoCollection = GetMongoCollection();
             mongoCollection.InsertOne(value);
-
+            return Created("/", value);
         }
 
         // PUT: api/Package/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public ActionResult Put(string id,PackageCollection value)
         {
+            mongoCollection = GetMongoCollection();
+            var objId = new ObjectId(id);
+            var result = mongoCollection.ReplaceOne(lm => lm.Id == objId, value);
+            return Ok(result);
         }
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public ActionResult Delete(string id)
         {
-            
+            var objId = new ObjectId(id);
+            mongoCollection = GetMongoCollection();
+            var update = Builders<PackageCollection>.Update.Set("Status", 0);
+            var result = mongoCollection.UpdateOne<PackageCollection>(lm => lm.Id == objId, update);
+
+            return Ok(result);
         }
     }
 }

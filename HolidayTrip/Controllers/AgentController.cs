@@ -28,9 +28,9 @@ namespace HolidayTrip.Controllers
         [HttpGet]
         public ActionResult Get()
         {
-            mongoCollection = GetMongoCollection();
-            //fetch the details from CustomerDB and pass into view  
+            mongoCollection = GetMongoCollection();            
             var result = mongoCollection.Find(FilterDefinition<AgentCollection>.Empty).ToList();
+            //var result = mongoCollection.Find(ag => ag.Status == 1).ToList();
             return Ok(result);
         }
 
@@ -52,7 +52,6 @@ namespace HolidayTrip.Controllers
         //    }
         //}
 
-
         // POST: api/Agent(insert)
         [HttpPost]
         public ActionResult Post(AgentCollection value)
@@ -64,28 +63,37 @@ namespace HolidayTrip.Controllers
 
 
         //GET: api/Agent/5
-        [HttpGet("{id}", Name = "Get")]
+        //[HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}")]
         public ActionResult Get(String id)
         {
             mongoCollection = GetMongoCollection();
-            var objectId = new ObjectId(id);
+            var objId = new ObjectId(id);
 
-            var result = mongoCollection.Find<AgentCollection>(ag => ag.Id == objectId).FirstOrDefault();
+            var result = mongoCollection.Find<AgentCollection>(ag => ag.Id == objId).FirstOrDefault();
             return Ok(result);
         }
 
         // PUT: api/Agent/5
         [HttpPut("{id}")]
-        public void Put(String id, AgentCollection value)
+        public ActionResult Put(String id, AgentCollection value)
         {
             mongoCollection = GetMongoCollection();
-            var objectId = new ObjectId(id);
+            var objId = new ObjectId(id);
+            var result = mongoCollection.ReplaceOne(ag => ag.Id == objId, value);
+            return Ok(result);
         }
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public ActionResult Delete(String id)
         {
+            var objId = new ObjectId(id);
+            mongoCollection = GetMongoCollection();
+            var update = Builders<AgentCollection>.Update.Set("Status", 0);
+            var result = mongoCollection.UpdateOne<AgentCollection>(ag => ag.Id == objId,update);
+            
+            return Ok(result);
         }
     }
 }

@@ -10,7 +10,9 @@ namespace HolidayTrip.Models
     public class AgentCollection
     {
         [BsonId]
+        [BsonIgnoreIfDefault]
         public ObjectId Id { get; set; }
+
         [BsonElement]
         public string AgentName { get; set; }
         [BsonElement]

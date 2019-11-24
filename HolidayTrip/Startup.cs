@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Cors;
 
 namespace HolidayTrip
 {
@@ -23,6 +24,17 @@ namespace HolidayTrip
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+             services.AddCors(option =>
+            {
+                option.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();                     
+                    });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

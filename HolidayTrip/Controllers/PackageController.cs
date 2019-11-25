@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using HolidayTrip.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.IO;
+using System.Net.Http.Headers;
 
 namespace HolidayTrip.Controllers
 {
@@ -44,12 +46,45 @@ namespace HolidayTrip.Controllers
         }
 
         // POST: api/Package
-        [HttpPost]
-        public ActionResult Post(PackageCollection value)
+        [HttpPost, DisableRequestSizeLimit]
+        public ActionResult Post()
         {
-            mongoCollection = GetMongoCollection();
-            mongoCollection.InsertOne(value);
-            return Created("/", value);
+
+            try
+            {
+                var file = Request.Form.Files[0];
+                var title = Request.Form["Title"];
+                var folderName = Path.Combine("Resources", "Images");
+                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+                if (file.Length > 0)
+                {
+                    var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    var fullPath = Path.Combine(pathToSave, fileName);
+                    var dbPath = Path.Combine(folderName, fileName);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        file.CopyTo(stream);
+                    }
+                    //value.MainImage = dbPath;
+                    //mongoCollection = GetMongoCollection();
+                    //mongoCollection.InsertOne(value);
+                    return Ok(new { dbPath ,title});
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+            //return Ok(new { status = true, message = "Student Posted Successfully" });
+            //mongoCollection = GetMongoCollection();
+            //mongoCollection.InsertOne(value);
+            //return Created("/", value);
         }
 
         // PUT: api/Package/5

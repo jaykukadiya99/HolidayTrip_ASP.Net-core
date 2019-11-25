@@ -8,6 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace HolidayTrip
 {
@@ -24,7 +27,7 @@ namespace HolidayTrip
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(option =>
-            {
+            {                
                 option.AddDefaultPolicy(
                     builder =>
                     {
@@ -54,6 +57,12 @@ namespace HolidayTrip
 
             app.UseAuthorization();
 
+            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
+                RequestPath = new PathString("/Resources")
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

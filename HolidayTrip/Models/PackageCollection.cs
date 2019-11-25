@@ -22,6 +22,8 @@ namespace HolidayTrip.Models
         [BsonElement]
         public string AgentId { get; set; }
         [BsonElement]
+        public int Days { get; set; }
+        [BsonElement]
         public string FixedDepatureDate { get; set; }
         [BsonElement]
         public string Description { get; set; }

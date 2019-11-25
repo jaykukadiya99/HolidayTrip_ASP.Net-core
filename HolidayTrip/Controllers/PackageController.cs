@@ -53,13 +53,15 @@ namespace HolidayTrip.Controllers
             try
             {
                 var file = Request.Form.Files[0];
-                var title = Request.Form["Title"];
+
+                PackageCollection pc = new PackageCollection();                
+
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
                 if (file.Length > 0)
                 {
-                    var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    var fileName = DateTime.Now.ToFileTime()+ "_" +ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
                     var fullPath = Path.Combine(pathToSave, fileName);
                     var dbPath = Path.Combine(folderName, fileName);
 
@@ -70,7 +72,30 @@ namespace HolidayTrip.Controllers
                     //value.MainImage = dbPath;
                     //mongoCollection = GetMongoCollection();
                     //mongoCollection.InsertOne(value);
-                    return Ok(new { dbPath ,title});
+
+                    pc.Title = Request.Form["Title"];
+                    pc.MainImage = fileName;
+                    pc.CategoryId = Request.Form["CategoryId"];
+                    pc.AgentId = Request.Form["AgentId"];
+                    pc.FixedDepatureDate = Request.Form["FixedDepatureDate"];
+                    pc.Description = Request.Form["Description"];
+                    //pc.Itinerary = Request.Form["Itinerary"];
+                    pc.Inclusion = Request.Form["Inclusion"];
+                    pc.Exclusion = Request.Form["Exclusion"];
+                    pc.OtherInfo = Request.Form["OtherInfo"];
+                    pc.TandC = Request.Form["TandC"];
+                    pc.CityIncluded = Request.Form["CityIncluded"];
+                    pc.Price = Convert.ToDouble(Request.Form["Price"]);
+                    pc.PriceDesc = Request.Form["PriceDesc"];
+                    pc.Brochure = Request.Form["Brochure"];
+                    pc.TrendingRank = Convert.ToInt32(Request.Form["TrendingRank"]);
+                    pc.InsertedDate = Request.Form["InsertedDate"];
+                    pc.Status = Convert.ToInt32(Request.Form["Status"]);
+
+                    mongoCollection = GetMongoCollection();
+                    mongoCollection.InsertOne(pc);
+
+                    return Ok(new { dbPath,pc});
                 }
                 else
                 {
@@ -79,7 +104,7 @@ namespace HolidayTrip.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, ex);
             }
             //return Ok(new { status = true, message = "Student Posted Successfully" });
             //mongoCollection = GetMongoCollection();

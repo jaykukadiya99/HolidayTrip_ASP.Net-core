@@ -34,24 +34,6 @@ namespace HolidayTrip.Controllers
             return Ok(result);
         }
 
-        //post:api/Agent/login (login)
-        //[HttpPost]
-        //public ActionResult login(AgentCollection data)
-        //{
-        //    mongoCollection = GetMongoCollection();
-        //    var result = mongoCollection.Find<AgentCollection>(a =>a.AgencyEmail == data.AgencyEmail && a.Pass == data.Pass).FirstOrDefault();
-
-        //    if(result !=null)
-        //    {
-        //        return Ok(result);
-        //    }            
-        //    else
-        //    {
-        //        //send status 204 nocontent found
-        //        return NoContent();
-        //    }
-        //}
-
         // POST: api/Agent(insert)
         [HttpPost]
         public ActionResult Post(AgentCollection value)

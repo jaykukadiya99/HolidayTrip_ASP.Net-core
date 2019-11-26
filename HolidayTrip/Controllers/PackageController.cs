@@ -53,8 +53,11 @@ namespace HolidayTrip.Controllers
             try
             {
                 var file = Request.Form.Files[0];
+                var file1 = Request.Form.Files[1];
+                var data = Request.Form["data"];
 
-                PackageCollection pc = new PackageCollection();                
+
+                //PackageCollection pc = new PackageCollection();                
 
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
@@ -69,33 +72,44 @@ namespace HolidayTrip.Controllers
                     {
                         file.CopyTo(stream);
                     }
+
+                    var fileName1 = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(file1.ContentDisposition).FileName.Trim('"');
+                    var fullPath1 = Path.Combine(pathToSave, fileName1);
+                    var dbPath1 = Path.Combine(folderName, fileName1);
+
+                    using (var stream = new FileStream(fullPath1, FileMode.Create))
+                    {
+                        file.CopyTo(stream);
+                    }
+
+                    return Ok(new { dbPath ,dbPath1,data});
                     //value.MainImage = dbPath;
                     //mongoCollection = GetMongoCollection();
                     //mongoCollection.InsertOne(value);
 
-                    pc.Title = Request.Form["Title"];
-                    pc.MainImage = fileName;
-                    pc.CategoryId = Request.Form["CategoryId"];
-                    pc.AgentId = Request.Form["AgentId"];
-                    pc.FixedDepatureDate = Request.Form["FixedDepatureDate"];
-                    pc.Description = Request.Form["Description"];
-                    //pc.Itinerary = Request.Form["Itinerary"];
-                    pc.Inclusion = Request.Form["Inclusion"];
-                    pc.Exclusion = Request.Form["Exclusion"];
-                    pc.OtherInfo = Request.Form["OtherInfo"];
-                    pc.TandC = Request.Form["TandC"];
-                    pc.CityIncluded = Request.Form["CityIncluded"];
-                    pc.Price = Convert.ToDouble(Request.Form["Price"]);
-                    pc.PriceDesc = Request.Form["PriceDesc"];
-                    pc.Brochure = Request.Form["Brochure"];
-                    pc.TrendingRank = Convert.ToInt32(Request.Form["TrendingRank"]);
-                    pc.InsertedDate = Request.Form["InsertedDate"];
-                    pc.Status = Convert.ToInt32(Request.Form["Status"]);
+                    //pc.Title = Request.Form["Title"];
+                    //pc.MainImage = fileName;
+                    //pc.CategoryId = Request.Form["CategoryId"];
+                    //pc.AgentId = Request.Form["AgentId"];
+                    //pc.FixedDepatureDate = Request.Form["FixedDepatureDate"];
+                    //pc.Description = Request.Form["Description"];
+                    ////pc.Itinerary = Request.Form["Itinerary"];
+                    //pc.Inclusion = Request.Form["Inclusion"];
+                    //pc.Exclusion = Request.Form["Exclusion"];
+                    //pc.OtherInfo = Request.Form["OtherInfo"];
+                    //pc.TandC = Request.Form["TandC"];
+                    //pc.CityIncluded = Request.Form["CityIncluded"];
+                    //pc.Price = Convert.ToDouble(Request.Form["Price"]);
+                    //pc.PriceDesc = Request.Form["PriceDesc"];
+                    //pc.Brochure = Request.Form["Brochure"];
+                    //pc.TrendingRank = Convert.ToInt32(Request.Form["TrendingRank"]);
+                    //pc.InsertedDate = Request.Form["InsertedDate"];
+                    //pc.Status = Convert.ToInt32(Request.Form["Status"]);
 
-                    mongoCollection = GetMongoCollection();
-                    mongoCollection.InsertOne(pc);
+                    //mongoCollection = GetMongoCollection();
+                    //mongoCollection.InsertOne(pc);
 
-                    return Ok(new { dbPath,pc});
+
                 }
                 else
                 {

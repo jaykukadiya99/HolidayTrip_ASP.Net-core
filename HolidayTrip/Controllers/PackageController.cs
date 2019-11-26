@@ -79,7 +79,7 @@ namespace HolidayTrip.Controllers
 
                     using (var stream = new FileStream(fullPath1, FileMode.Create))
                     {
-                        file.CopyTo(stream);
+                        file1.CopyTo(stream);
                     }
 
                     return Ok(new { dbPath ,dbPath1,data});

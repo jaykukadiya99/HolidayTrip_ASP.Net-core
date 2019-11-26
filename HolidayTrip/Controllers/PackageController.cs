@@ -52,9 +52,12 @@ namespace HolidayTrip.Controllers
 
             try
             {
-                var file = Request.Form.Files[0];
-                var file1 = Request.Form.Files[1];
+                var file = Request.Form.Files[0].FileName;
+                var file1 = Request.Form.Files[1].FileName;
+                var file2 = Request.Form.Files["ItineryImg0"].FileName;
+                var file3 = Request.Form.Files[3].FileName;
                 var data = Request.Form["data"];
+
 
 
                 //PackageCollection pc = new PackageCollection();                
@@ -62,27 +65,32 @@ namespace HolidayTrip.Controllers
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
-                if (file.Length > 0)
-                {
-                    var fileName = DateTime.Now.ToFileTime()+ "_" +ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    var fullPath = Path.Combine(pathToSave, fileName);
-                    var dbPath = Path.Combine(folderName, fileName);
 
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
+                return Ok(new {file,file1,file2,file3 });
+                //return Ok(new { dbPath, dbPath1, data });
+                //if (file.Length > 0)
+                //{
+                //    var fileName = DateTime.Now.ToFileTime()+ "_" +ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                //    var fullPath = Path.Combine(pathToSave, fileName);
+                //    var dbPath = Path.Combine(folderName, fileName);
 
-                    var fileName1 = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(file1.ContentDisposition).FileName.Trim('"');
-                    var fullPath1 = Path.Combine(pathToSave, fileName1);
-                    var dbPath1 = Path.Combine(folderName, fileName1);
+                    //    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    //    {
+                    //        file.CopyTo(stream);
+                    //    }
 
-                    using (var stream = new FileStream(fullPath1, FileMode.Create))
-                    {
-                        file1.CopyTo(stream);
-                    }
+                    //    var fileName1 = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(file1.ContentDisposition).FileName.Trim('"');
+                    //    var fullPath1 = Path.Combine(pathToSave, fileName1);
+                    //    var dbPath1 = Path.Combine(folderName, fileName1);
 
-                    return Ok(new { dbPath ,dbPath1,data});
+                    //    using (var stream = new FileStream(fullPath1, FileMode.Create))
+                    //    {
+                    //        file1.CopyTo(stream);
+                    //    }
+
+                    //    return Ok(new { dbPath ,dbPath1,data});
+
+                    //}
                     //value.MainImage = dbPath;
                     //mongoCollection = GetMongoCollection();
                     //mongoCollection.InsertOne(value);
@@ -110,11 +118,10 @@ namespace HolidayTrip.Controllers
                     //mongoCollection.InsertOne(pc);
 
 
-                }
-                else
-                {
-                    return BadRequest();
-                }
+                //else
+                //{
+                //    return BadRequest();
+                //}
             }
             catch (Exception ex)
             {

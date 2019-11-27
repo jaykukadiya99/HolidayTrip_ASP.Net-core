@@ -52,23 +52,18 @@ namespace HolidayTrip.Controllers
             {
                 var update = Builders<CustomerCollection>.Update.Set("OTP", otp);
                 var updateOtp = mongoCollection.UpdateOne<CustomerCollection>(ag => ag.Mobile == newCust.Mobile, update);
-
                 var updateObj = mongoCollection.Find<CustomerCollection>(ag => ag.Mobile == newCust.Mobile).FirstOrDefault();
-
-                dynamic data = new JObject();
-                data.msg = "old user";
-                data.otp = otp;
-                data.customer = Newtonsoft.Json.JsonConvert.SerializeObject(updateObj);
-
-                //return Ok(data);
-
+                
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
                 var tokeOptions = new JwtSecurityToken(
                     issuer: "http://localhost:58030",
                     audience: "http://localhost:4200",
-                    claims: new List<Claim>(),
+                    claims: new List<Claim>() { 
+                        new Claim(JwtRegisteredClaimNames.Typ,"Old User"),
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(updateObj)),                       
+                    },
                     //expires: DateTime.Now.AddMinutes(5),
                     signingCredentials: signinCredentials
                 );
@@ -76,18 +71,27 @@ namespace HolidayTrip.Controllers
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
                 return Ok(new { Token = tokenString });
             }
-            //else
-            //{
-            //    mongoCollection.InsertOne(newCust);
-            //    dynamic data = new JObject();
-            //    data.msg = "new user";
-            //    data.otp = otp;
-            //    data.customer = Newtonsoft.Json.JsonConvert.SerializeObject(newCust);
+            else
+            {
+                mongoCollection.InsertOne(newCust);
 
-            //    return Ok(data);
-            //}
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
-            return Ok("else");
+                var tokeOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:58030",
+                    audience: "http://localhost:4200",
+                    claims: new List<Claim>() {
+                        new Claim(JwtRegisteredClaimNames.Typ,"New User"),
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(newCust)),
+                    },
+                    //expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signinCredentials
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                return Ok(new { Token = tokenString });
+            }        
         }
 
         // GET: api/Customer

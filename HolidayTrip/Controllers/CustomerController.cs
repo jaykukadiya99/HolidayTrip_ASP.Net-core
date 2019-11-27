@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using HolidayTrip.Models;
 using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authorization;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HolidayTrip.Controllers
 {
@@ -22,6 +27,13 @@ namespace HolidayTrip.Controllers
             var db = mongoClient.GetDatabase("HolidayTrip");
             return db.GetCollection<CustomerCollection>("CustomerCollection");
         }
+
+        [HttpGet, Authorize]
+        public IEnumerable<string> Auth()
+        {
+            return new string[] { "John Doe", "Jane Doe" };
+        }
+
 
         [HttpPost]
         public ActionResult login(CustomerCollection newCust)
@@ -48,24 +60,40 @@ namespace HolidayTrip.Controllers
                 data.otp = otp;
                 data.customer = Newtonsoft.Json.JsonConvert.SerializeObject(updateObj);
 
-                return Ok(data);
-            }
-            else
-            {
-                mongoCollection.InsertOne(newCust);
-                dynamic data = new JObject();
-                data.msg = "new user";
-                data.otp = otp;
-                data.customer = Newtonsoft.Json.JsonConvert.SerializeObject(newCust);
+                //return Ok(data);
 
-                return Ok(data);
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                var tokeOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:58030",
+                    audience: "http://localhost:4200",
+                    claims: new List<Claim>(),
+                    //expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signinCredentials
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                return Ok(new { Token = tokenString });
             }
+            //else
+            //{
+            //    mongoCollection.InsertOne(newCust);
+            //    dynamic data = new JObject();
+            //    data.msg = "new user";
+            //    data.otp = otp;
+            //    data.customer = Newtonsoft.Json.JsonConvert.SerializeObject(newCust);
+
+            //    return Ok(data);
+            //}
+
+            return Ok("else");
         }
 
         // GET: api/Customer
         [HttpGet]
         public IEnumerable<string> Get()
-        {
+        {   
             return new string[] { "value1", "value2" };
         }
 

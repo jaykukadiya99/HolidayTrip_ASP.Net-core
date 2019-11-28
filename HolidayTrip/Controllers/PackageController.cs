@@ -9,6 +9,8 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using System.IO;
 using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace HolidayTrip.Controllers
 {
@@ -52,91 +54,72 @@ namespace HolidayTrip.Controllers
 
             try
             {
-                var totalImg = Request.Form.Files.Count-1;
+                PackageCollection data = JsonConvert.DeserializeObject<PackageCollection>(Request.Form["data"]); //JObject.Parse();                
 
-                for(int i=0;i<totalImg-2;i++)
-                {
-
-                }
-
-                var file = Request.Form.Files[0].FileName;
-                var file1 = Request.Form.Files[1].FileName;
-                var file2 = Request.Form.Files[2].FileName;
-                var file3 = Request.Form.Files[3].FileName;
-                var data = Request.Form["data"];                
-
-
-                //PackageCollection pc = new PackageCollection();                
+                var totalImg = Request.Form.Files.Count();
 
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
 
-                return Ok(new {file,file1,file2,file3,data,totalImg });
-                //return Ok(new { dbPath, dbPath1, data });
-                //if (file.Length > 0)
-                //{
-                //    var fileName = DateTime.Now.ToFileTime()+ "_" +ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                //    var fullPath = Path.Combine(pathToSave, fileName);
-                //    var dbPath = Path.Combine(folderName, fileName);
+                for (int i=0; i <= totalImg-3; i++)
+                {                   
+                    var file = Request.Form.Files[i];
 
-                    //    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    //    {
-                    //        file.CopyTo(stream);
-                    //    }
+                    var fileName = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    var fullPath = Path.Combine(pathToSave, fileName);
+                    //var dbPath = Path.Combine(folderName, fileName);
 
-                    //    var fileName1 = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(file1.ContentDisposition).FileName.Trim('"');
-                    //    var fullPath1 = Path.Combine(pathToSave, fileName1);
-                    //    var dbPath1 = Path.Combine(folderName, fileName1);
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        file.CopyTo(stream);
+                    }
+                    data.Itinerary.ElementAt(i).Images = fileName;
+                }
 
-                    //    using (var stream = new FileStream(fullPath1, FileMode.Create))
-                    //    {
-                    //        file1.CopyTo(stream);
-                    //    }
+                if (Request.Form.Files["MainImage"].Length > 0)
+                {
+                    var MainImg = Request.Form.Files[totalImg - 2];
 
-                    //    return Ok(new { dbPath ,dbPath1,data});
+                    var MainImgName = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(MainImg.ContentDisposition).FileName.Trim('"');
+                    var fullPath1 = Path.Combine(pathToSave, MainImgName);
+                    //var dbPath1 = Path.Combine(folderName, MainImgName);
 
-                    //}
-                    //value.MainImage = dbPath;
-                    //mongoCollection = GetMongoCollection();
-                    //mongoCollection.InsertOne(value);
+                    using (var stream = new FileStream(fullPath1, FileMode.Create))
+                    {
+                        MainImg.CopyTo(stream);
+                    }
+                    Console.WriteLine("main img");
+                    data.MainImage = MainImgName;
+                }                
 
-                    //pc.Title = Request.Form["Title"];
-                    //pc.MainImage = fileName;
-                    //pc.CategoryId = Request.Form["CategoryId"];
-                    //pc.AgentId = Request.Form["AgentId"];
-                    //pc.FixedDepatureDate = Request.Form["FixedDepatureDate"];
-                    //pc.Description = Request.Form["Description"];
-                    ////pc.Itinerary = Request.Form["Itinerary"];
-                    //pc.Inclusion = Request.Form["Inclusion"];
-                    //pc.Exclusion = Request.Form["Exclusion"];
-                    //pc.OtherInfo = Request.Form["OtherInfo"];
-                    //pc.TandC = Request.Form["TandC"];
-                    //pc.CityIncluded = Request.Form["CityIncluded"];
-                    //pc.Price = Convert.ToDouble(Request.Form["Price"]);
-                    //pc.PriceDesc = Request.Form["PriceDesc"];
-                    //pc.Brochure = Request.Form["Brochure"];
-                    //pc.TrendingRank = Convert.ToInt32(Request.Form["TrendingRank"]);
-                    //pc.InsertedDate = Request.Form["InsertedDate"];
-                    //pc.Status = Convert.ToInt32(Request.Form["Status"]);
+                if(Request.Form.Files["Brochure"].Length > 0)
+                {
+                    var Brocher = Request.Form.Files[totalImg - 1];
 
-                    //mongoCollection = GetMongoCollection();
-                    //mongoCollection.InsertOne(pc);
+                    var BrocherName = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(Brocher.ContentDisposition).FileName.Trim('"');
+                    var fullPath2 = Path.Combine(pathToSave, BrocherName);
+                    //var dbPath2 = Path.Combine(folderName, BrocherName);
 
+                    using (var stream = new FileStream(fullPath2, FileMode.Create))
+                    {
+                        Brocher.CopyTo(stream);
+                    }
+                    Console.WriteLine("Brocher");
+                    data.Brochure = BrocherName;
+                }
 
-                //else
-                //{
-                //    return BadRequest();
-                //}
+                data.AgentId = "1";
+                mongoCollection = GetMongoCollection();
+                mongoCollection.InsertOne(data);
+                
+                return Ok(new { totalImg,data});
+                
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex);
             }
-            //return Ok(new { status = true, message = "Student Posted Successfully" });
-            //mongoCollection = GetMongoCollection();
-            //mongoCollection.InsertOne(value);
-            //return Created("/", value);
         }
 
         // PUT: api/Package/5

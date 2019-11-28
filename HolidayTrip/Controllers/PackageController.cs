@@ -66,7 +66,7 @@ namespace HolidayTrip.Controllers
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
 
-                return Ok(new {file,file1,file2,file3 });
+                return Ok(new {file,file1,file2,file3,data });
                 //return Ok(new { dbPath, dbPath1, data });
                 //if (file.Length > 0)
                 //{

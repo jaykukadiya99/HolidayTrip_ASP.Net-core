@@ -18,7 +18,7 @@ namespace HolidayTrip.Models
         [BsonElement]
         public string MainImage { get; set; } 
         [BsonElement]
-        public string CategoryId { get; set; }
+        public IEnumerable<string> CategoryId { get; set; }
         [BsonElement]
         public string AgentId { get; set; }
         [BsonElement]

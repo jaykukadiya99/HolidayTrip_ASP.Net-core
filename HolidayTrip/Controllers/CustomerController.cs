@@ -8,6 +8,7 @@ using HolidayTrip.Models;
 using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authorization;
+//using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -62,6 +63,7 @@ namespace HolidayTrip.Controllers
                     audience: "http://localhost:4200",
                     claims: new List<Claim>() { 
                         new Claim(JwtRegisteredClaimNames.Typ,"Old User"),
+                        new Claim(JwtRegisteredClaimNames.NameId,updateObj.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(updateObj)),                       
                     },
                     //expires: DateTime.Now.AddMinutes(5),
@@ -83,6 +85,7 @@ namespace HolidayTrip.Controllers
                     audience: "http://localhost:4200",
                     claims: new List<Claim>() {
                         new Claim(JwtRegisteredClaimNames.Typ,"New User"),
+                        new Claim(JwtRegisteredClaimNames.NameId,newCust.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(newCust)),
                     },
                     //expires: DateTime.Now.AddMinutes(5),
@@ -92,6 +95,30 @@ namespace HolidayTrip.Controllers
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
                 return Ok(new { Token = tokenString });
             }        
+        }
+
+        [HttpPost]        
+        public ActionResult customerOtp(CustomerCollection cust)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            string stream = Request.Headers["Authorization"];
+            stream = stream.Replace("Bearer ", "");
+            //var jsonToken = handler.ReadToken(stream);
+            var tokenS = handler.ReadToken(stream) as JwtSecurityToken;
+            var id = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
+
+            //return Ok(new { data = id});
+
+            mongoCollection = GetMongoCollection();
+            var result = mongoCollection.Find<CustomerCollection>(ag => ag.Mobile == cust.Mobile && ag.OTP == cust.OTP).ToList();
+            if (result.Count == 1)
+            {
+                return Ok(new { msg = "Valid User" });
+            }
+            else
+            {
+                return Ok(new { msg = "Invalid User" });
+            }
         }
 
         // GET: api/Customer

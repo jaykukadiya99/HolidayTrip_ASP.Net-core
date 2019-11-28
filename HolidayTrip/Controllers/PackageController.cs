@@ -52,12 +52,18 @@ namespace HolidayTrip.Controllers
 
             try
             {
+                var totalImg = Request.Form.Files.Count-1;
+
+                for(int i=0;i<totalImg-2;i++)
+                {
+
+                }
+
                 var file = Request.Form.Files[0].FileName;
                 var file1 = Request.Form.Files[1].FileName;
-                var file2 = Request.Form.Files["ItineryImg0"].FileName;
+                var file2 = Request.Form.Files[2].FileName;
                 var file3 = Request.Form.Files[3].FileName;
-                var data = Request.Form["data"];
-
+                var data = Request.Form["data"];                
 
 
                 //PackageCollection pc = new PackageCollection();                
@@ -66,7 +72,7 @@ namespace HolidayTrip.Controllers
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
 
-                return Ok(new {file,file1,file2,file3,data });
+                return Ok(new {file,file1,file2,file3,data,totalImg });
                 //return Ok(new { dbPath, dbPath1, data });
                 //if (file.Length > 0)
                 //{

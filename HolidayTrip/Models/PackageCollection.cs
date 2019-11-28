@@ -58,6 +58,6 @@ namespace HolidayTrip.Models
     {
         public string Title { get; set; }
         public string Description { get; set; }
-        public IEnumerable<string> Images { get; set; }
+        public string Images { get; set; }
     }
 }

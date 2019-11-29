@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HolidayTrip.Controllers
 {
@@ -38,9 +42,28 @@ namespace HolidayTrip.Controllers
         [HttpPost]
         public ActionResult Post(AgentCollection value)
         {
+
             mongoCollection = GetMongoCollection();
-            mongoCollection.InsertOne(value);
-            return Created("/", value);
+            mongoCollection.InsertOne(value);            
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+
+            var tokeOptions = new JwtSecurityToken(
+                issuer: "http://localhost:58030",
+                audience: "http://localhost:4200",
+                claims: new List<Claim>() {
+                        new Claim(JwtRegisteredClaimNames.Typ,"Agent"),
+                        new Claim(JwtRegisteredClaimNames.NameId,value.Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(value))
+                },
+                //expires: DateTime.Now.AddMinutes(5),
+                signingCredentials: signinCredentials
+            );
+            Console.WriteLine(value.Id.ToString());
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+            return Ok(new { Token = tokenString });
         }
 
 

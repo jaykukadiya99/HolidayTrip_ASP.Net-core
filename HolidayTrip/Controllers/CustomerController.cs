@@ -100,12 +100,20 @@ namespace HolidayTrip.Controllers
         [HttpPost]        
         public ActionResult customerOtp(CustomerCollection cust)
         {
+            //var handler = new JwtSecurityTokenHandler();
+            //string stream = Request.Headers["Authorization"];
+            //stream = stream.Replace("Bearer ", "");
+            ////var jsonToken = handler.ReadToken(stream);
+            //var tokenS = handler.ReadToken(stream) as JwtSecurityToken;
+            //var id = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
+
             var handler = new JwtSecurityTokenHandler();
-            string stream = Request.Headers["Authorization"];
-            stream = stream.Replace("Bearer ", "");
+            string token = Request.Headers["Authorization"];
+            Console.WriteLine(token);
+            //token = token.Replace("Bearer ", "");
             //var jsonToken = handler.ReadToken(stream);
-            var tokenS = handler.ReadToken(stream) as JwtSecurityToken;
-            var id = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
+            //var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+            //var tokenId = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
 
             //return Ok(new { data = id});
 
@@ -113,11 +121,11 @@ namespace HolidayTrip.Controllers
             var result = mongoCollection.Find<CustomerCollection>(ag => ag.Mobile == cust.Mobile && ag.OTP == cust.OTP).ToList();
             if (result.Count == 1)
             {
-                return Ok(new { msg = "Valid User" });
+                return Ok(new { msg = "Valid User" ,token});
             }
             else
             {
-                return Ok(new { msg = "Invalid User" });
+                return Ok(new { msg = "Invalid User" ,token});
             }
         }
 

@@ -11,6 +11,7 @@ using System.IO;
 using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace HolidayTrip.Controllers
 {
@@ -31,6 +32,18 @@ namespace HolidayTrip.Controllers
         [HttpGet]
         public ActionResult Get()
         {
+            //var handler = new JwtSecurityTokenHandler();
+            //string token = Request.Headers["Authorization"];
+            //Console.WriteLine(token);
+
+            //token = token.Replace("Bearer ", "");
+            //var jsonToken = handler.ReadToken(stream);
+            //var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+            //var tokenId = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
+
+            //Console.WriteLine(tokenId);
+
+
             mongoCollection = GetMongoCollection();
             var result = mongoCollection.Find(FilterDefinition<PackageCollection>.Empty).ToList();
             return Ok(result);
@@ -48,16 +61,23 @@ namespace HolidayTrip.Controllers
         }
 
         // POST: api/Package
-        [HttpPost, DisableRequestSizeLimit]
-        public ActionResult Post()
+        [HttpPost("{id}"), DisableRequestSizeLimit]
+        public ActionResult Post(string id)
         {
 
             try
             {
-                PackageCollection data = JsonConvert.DeserializeObject<PackageCollection>(Request.Form["data"]); //JObject.Parse();                
+                //var handler = new JwtSecurityTokenHandler();
+                //string token = Request.Headers["Authorization"];
+                //token = token.Replace("Bearer ", "");                
+                //var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+                //var tokenId = tokenS.Claims.First(cl => cl.Type == "nameid").Value;
+
+                var rawData = Request.Form["data"];
+                PackageCollection data = JsonConvert.DeserializeObject<PackageCollection>(Request.Form["data"]);
+
 
                 var totalImg = Request.Form.Files.Count();
-
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
@@ -72,7 +92,7 @@ namespace HolidayTrip.Controllers
 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
-                        file.CopyTo(stream);
+                       // file.CopyTo(stream);
                     }
                     data.Itinerary.ElementAt(i).Images = fileName;
                 }
@@ -87,7 +107,7 @@ namespace HolidayTrip.Controllers
 
                     using (var stream = new FileStream(fullPath1, FileMode.Create))
                     {
-                        MainImg.CopyTo(stream);
+                       MainImg.CopyTo(stream);
                     }
                     Console.WriteLine("main img");
                     data.MainImage = MainImgName;
@@ -109,11 +129,11 @@ namespace HolidayTrip.Controllers
                     data.Brochure = BrocherName;
                 }
 
-                data.AgentId = "1";
+                data.AgentId = id;
                 mongoCollection = GetMongoCollection();
                 mongoCollection.InsertOne(data);
                 
-                return Ok(new { totalImg,data});
+                return Ok(new { msg="Inserted Sucessful"});
                 
             }
             catch (Exception ex)

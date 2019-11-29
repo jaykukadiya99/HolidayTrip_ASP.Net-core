@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using HolidayTrip.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HolidayTrip.Controllers
 {
@@ -32,7 +36,23 @@ namespace HolidayTrip.Controllers
 
             if (result.Count!=0)
             {
-                return Ok(result);
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                var tokeOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:58030",
+                    audience: "http://localhost:4200",
+                    claims: new List<Claim>() {
+                        new Claim(JwtRegisteredClaimNames.Typ,"Agent"),
+                        new Claim(JwtRegisteredClaimNames.NameId,result.FirstOrDefault().Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(result.FirstOrDefault())),
+                    },
+                    //expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signinCredentials
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                return Ok(new { Token = tokenString });                
             }
             else
             {
@@ -40,6 +60,18 @@ namespace HolidayTrip.Controllers
                 return NoContent();
             }
         }
+
+        [HttpGet("{id}")]
+        public ActionResult AgentPackage(string id)
+        {
+            mongoDatabase = GetMongoDatabase();
+            //5ddc059d9b9f555138880aa0
+            //var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(FilterDefinition<PackageCollection>.Empty).ToList();
+            var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(a => a.AgentId==id).ToList();
+
+            return Ok(result);
+        }
+
 
         // GET: api/AllRoute/5
         [HttpGet("{id}", Name = "Get")]

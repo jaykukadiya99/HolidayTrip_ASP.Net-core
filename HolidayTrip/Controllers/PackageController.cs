@@ -156,12 +156,22 @@ namespace HolidayTrip.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(string id)
         {
-            var objId = new ObjectId(id);
-            mongoCollection = GetMongoCollection();
-            var update = Builders<PackageCollection>.Update.Set("Status", 0);
-            var result = mongoCollection.UpdateOne<PackageCollection>(lm => lm.Id == objId, update);
+            //var objId = new ObjectId(id);
+            //mongoCollection = GetMongoCollection();
+            //var update = Builders<PackageCollection>.Update.Set("Status", 0);
+            //var result = mongoCollection.UpdateOne<PackageCollection>(lm => lm.Id == objId, update);
 
-            return Ok(result);
+            try
+            {
+                var objId = new ObjectId(id);
+                mongoCollection = GetMongoCollection();
+                var result = mongoCollection.DeleteOne(ag => ag.Id == objId);
+                return Ok(new { msg = "Deleted" });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
     }
 }

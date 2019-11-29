@@ -26,6 +26,48 @@ namespace HolidayTrip.Controllers
             return mongoClient.GetDatabase("HolidayTrip");
         }
 
+
+        public ActionResult AdminLogin(AdminCollection data)
+        {
+            try
+            {
+                mongoDatabase = GetMongoDatabase();
+                var result = mongoDatabase.GetCollection<AdminCollection>("AdminCollection")
+                    .Find<AdminCollection>(lm => lm.username==data.username && lm.pass==data.pass).ToList();
+
+                if(result.Count==1)
+                {
+                    var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                    var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                    var tokeOptions = new JwtSecurityToken(
+                        issuer: "http://localhost:58030",
+                        audience: "http://localhost:4200",
+                        claims: new List<Claim>() {
+                        new Claim(JwtRegisteredClaimNames.Typ,"Admin"),
+                        new Claim(JwtRegisteredClaimNames.NameId,result.FirstOrDefault().Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(result.FirstOrDefault())),
+                        },
+                        //expires: DateTime.Now.AddMinutes(5),
+                        signingCredentials: signinCredentials
+                    );
+
+                    var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                    return Ok(new { Token = tokenString });
+                }
+                else
+                {
+                    return Ok(new { msg="Invalid User"});
+                }
+                
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+        }
+
+
         // GET: api/AllRoute/AgentLogin
         [HttpPost]
         public ActionResult AgentLogin(AgentCollection data)
@@ -73,8 +115,9 @@ namespace HolidayTrip.Controllers
         }
 
 
+
         // GET: api/AllRoute/5
-        [HttpGet("{id}", Name = "Get")]
+        //[HttpGet("{id}", Name = "Get")]
         public string Get(int id)
         {
             return "value";

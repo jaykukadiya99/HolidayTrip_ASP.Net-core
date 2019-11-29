@@ -67,7 +67,7 @@ namespace HolidayTrip.Controllers
             mongoDatabase = GetMongoDatabase();
             //5ddc059d9b9f555138880aa0
             //var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(FilterDefinition<PackageCollection>.Empty).ToList();
-            var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(a => a.AgentId==id).ToList();
+            var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(a => a.AgentId==id && a.Status==0).ToList();
 
             return Ok(result);
         }

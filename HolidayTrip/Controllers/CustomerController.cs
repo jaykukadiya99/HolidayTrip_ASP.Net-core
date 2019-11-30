@@ -13,6 +13,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using MongoDB.Bson;
 
 namespace HolidayTrip.Controllers
 {
@@ -29,13 +30,14 @@ namespace HolidayTrip.Controllers
             return db.GetCollection<CustomerCollection>("CustomerCollection");
         }
 
-        [HttpGet, Authorize]
-        public IEnumerable<string> Auth()
-        {
-            return new string[] { "John Doe", "Jane Doe" };
-        }
+        //[HttpGet, Authorize]
+        //public IEnumerable<string> Auth()
+        //{
+        //    return new string[] { "John Doe", "Jane Doe" };
+        //}
 
 
+        //post:api/Customer/login
         [HttpPost]
         public ActionResult login(CustomerCollection newCust)
         {
@@ -97,6 +99,7 @@ namespace HolidayTrip.Controllers
             }        
         }
 
+        //post:api/Customer/customerOtp
         [HttpPost]        
         public ActionResult customerOtp(CustomerCollection cust)
         {
@@ -130,17 +133,22 @@ namespace HolidayTrip.Controllers
         }
 
         // GET: api/Customer
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {   
-            return new string[] { "value1", "value2" };
-        }
+        //[HttpGet]
+        //public IEnumerable<string> Get()
+        //{   
+        //    return new string[] { "value1", "value2" };
+        //}
 
-        // GET: api/Customer/5
+
+
+        // GET: api/Customer/GetOne/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult GetOne(string id)
         {
-            return "value";
+            mongoCollection = GetMongoCollection();
+            var objId = new ObjectId(id);
+            var result = mongoCollection.Find<CustomerCollection>(lm => lm.Id == objId).FirstOrDefault();
+            return Ok(result);
         }
 
         // POST: api/Customer
@@ -151,8 +159,12 @@ namespace HolidayTrip.Controllers
 
         // PUT: api/Customer/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public ActionResult Update(string id, CustomerCollection value)
         {
+            mongoCollection = GetMongoCollection();
+            var objId = new ObjectId(id);
+            var result = mongoCollection.ReplaceOne(lm => lm.Id==objId, value);
+            return Ok(new { msg = "Details Updated", data = value });
         }
 
         // DELETE: api/ApiWithActions/5

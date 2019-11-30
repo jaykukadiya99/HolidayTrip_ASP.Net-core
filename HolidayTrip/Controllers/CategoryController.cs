@@ -67,10 +67,8 @@ namespace HolidayTrip.Controllers
         {
             var objId = new ObjectId(id);
             mongoCollection = GetMongoCollection();
-            var update = Builders<CategoryCollection>.Update.Set("Status", 0);
-            var result = mongoCollection.UpdateOne<CategoryCollection>(ag => ag.Id == objId, update);
-
-            return Ok(result);
+            var result = mongoCollection.DeleteOne(lm => lm.Id == objId);
+            return Ok(new { msg="Deleted"});
         }
     }
 }

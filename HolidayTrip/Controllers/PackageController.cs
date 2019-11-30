@@ -144,7 +144,7 @@ namespace HolidayTrip.Controllers
                 }
 
                 data.AgentId = id;
-                data.InsertedDate = DateTime.Now.ToLongDateString();
+                data.InsertedDate = DateTime.Now.ToShortDateString();
                 mongoCollection = GetMongoCollection();
                 mongoCollection.InsertOne(data);
                 

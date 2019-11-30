@@ -41,6 +41,7 @@ namespace HolidayTrip.Controllers
         [HttpPost]
         public ActionResult Post(InquiryCollection value)
         {
+            value.InquiryDate = DateTime.Now.ToShortDateString();
             mongoCollection = GetMongoCollection();
             mongoCollection.InsertOne(value);
 

@@ -50,7 +50,7 @@ namespace HolidayTrip.Models
         [BsonElement]
         public string InsertedDate { get; set; }
         [BsonElement]
-        public int Status { get; set; }
+        public int Status { get; set; } = 1;
 
     }
 

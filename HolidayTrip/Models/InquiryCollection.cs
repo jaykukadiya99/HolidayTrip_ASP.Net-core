@@ -20,7 +20,7 @@ namespace HolidayTrip.Models
         [BsonElement]
         public string PackageId { get; set; }
         [BsonElement]
-        public int Person { get; set; }
+        public string Person { get; set; }
         [BsonElement]
         public string InquiryAbout { get; set; }
         [BsonElement]

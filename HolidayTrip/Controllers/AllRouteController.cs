@@ -67,6 +67,20 @@ namespace HolidayTrip.Controllers
             }
         }
 
+        // GET: api/AllRoute/custPack
+        public ActionResult custPack()
+        {
+            mongoDatabase = GetMongoDatabase();
+            var pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection");
+            var agent = mongoDatabase.GetCollection<AgentCollection>("AgentCollection");
+
+            var qu = from p in pack.AsQueryable()
+                     join a in agent.AsQueryable() on p.AgentId equals a.IdAsString into data
+                     select new { package=p,agent=data};
+
+            var result = qu.ToList();
+            return Ok(result);
+        }
 
         // GET: api/AllRoute/AgentLogin
         [HttpPost]

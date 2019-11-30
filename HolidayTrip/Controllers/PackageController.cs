@@ -44,9 +44,23 @@ namespace HolidayTrip.Controllers
             //Console.WriteLine(tokenId);
 
 
-            mongoCollection = GetMongoCollection();
-            var result = mongoCollection.Find(FilterDefinition<PackageCollection>.Empty).ToList();
-            return Ok(result);
+            //mongoCollection = GetMongoCollection();
+            //var result = mongoCollection.Find(FilterDefinition<PackageCollection>.Empty).ToList();
+            //return Ok(result);
+
+            var mongoClient = new MongoClient("mongodb://localhost:27017");
+            var db = mongoClient.GetDatabase("HolidayTrip");
+
+            var pack = db.GetCollection<PackageCollection>("PackageCollection");
+            var agent = db.GetCollection<AgentCollection>("AgentCollection");
+
+            var qu = from p in pack.AsQueryable()
+                     join a in agent.AsQueryable() on p.AgentId equals a.IdAsString into data
+                     select new { package = p, agent = data };
+
+            var result = qu.ToList();       
+            var shuffle = result.OrderBy(a => Guid.NewGuid());
+            return Ok(shuffle);
         }
 
         //GET: api/Agent/5
@@ -92,7 +106,7 @@ namespace HolidayTrip.Controllers
 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
-                       // file.CopyTo(stream);
+                       file.CopyTo(stream);
                     }
                     data.Itinerary.ElementAt(i).Images = fileName;
                 }
@@ -130,6 +144,7 @@ namespace HolidayTrip.Controllers
                 }
 
                 data.AgentId = id;
+                data.InsertedDate = DateTime.Now.ToLongDateString();
                 mongoCollection = GetMongoCollection();
                 mongoCollection.InsertOne(data);
                 

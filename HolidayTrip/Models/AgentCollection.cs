@@ -14,6 +14,13 @@ namespace HolidayTrip.Models
         public ObjectId Id { get; set; }
 
         [BsonElement]
+        public string IdAsString
+        {
+            get { return Id.ToString(); }
+            set { Id = ObjectId.Parse(value); }
+        }
+
+        [BsonElement]
         public string AgentName { get; set; }
         [BsonElement]
         public string AgencyName { get; set; }

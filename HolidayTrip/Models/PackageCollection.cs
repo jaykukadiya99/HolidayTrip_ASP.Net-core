@@ -13,6 +13,14 @@ namespace HolidayTrip.Models
         [BsonId]
         [BsonIgnoreIfDefault]
         public ObjectId Id { get; set; }
+
+        [BsonElement]
+        public string IdAsString
+        {
+            get { return Id.ToString(); }
+            set { Id = ObjectId.Parse(value); }
+        }
+
         [BsonElement]
         public string Title { get; set; }
         [BsonElement]

@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 
 namespace HolidayTrip.Controllers
 {
@@ -30,6 +31,15 @@ namespace HolidayTrip.Controllers
             return db.GetCollection<CustomerCollection>("CustomerCollection");
         }
 
+        private IMongoDatabase mongoDatabase;
+
+        //Generic method to get the mongodb database details  
+        public IMongoDatabase GetMongoDatabase()
+        {
+            var mongoClient = new MongoClient("mongodb://localhost:27017");
+            return mongoClient.GetDatabase("HolidayTrip");
+        }
+
         //[HttpGet, Authorize]
         //public IEnumerable<string> Auth()
         //{
@@ -41,8 +51,8 @@ namespace HolidayTrip.Controllers
         [HttpPost]
         public ActionResult login(CustomerCollection newCust)
         {
-            
-            Random random = new Random();           
+
+            Random random = new Random();
             int otp = random.Next(100000, 999999);
 
             newCust.OTP = otp;
@@ -56,17 +66,17 @@ namespace HolidayTrip.Controllers
                 var update = Builders<CustomerCollection>.Update.Set("OTP", otp);
                 var updateOtp = mongoCollection.UpdateOne<CustomerCollection>(ag => ag.Mobile == newCust.Mobile, update);
                 var updateObj = mongoCollection.Find<CustomerCollection>(ag => ag.Mobile == newCust.Mobile).FirstOrDefault();
-                
+
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
                 var tokeOptions = new JwtSecurityToken(
                     issuer: "http://localhost:58030",
                     audience: "http://localhost:4200",
-                    claims: new List<Claim>() { 
+                    claims: new List<Claim>() {
                         new Claim(JwtRegisteredClaimNames.Typ,"Old User"),
                         new Claim(JwtRegisteredClaimNames.NameId,updateObj.Id.ToString()),
-                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(updateObj)),                       
+                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(updateObj)),
                     },
                     //expires: DateTime.Now.AddMinutes(5),
                     signingCredentials: signinCredentials
@@ -96,11 +106,11 @@ namespace HolidayTrip.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
                 return Ok(new { Token = tokenString });
-            }        
+            }
         }
 
         //post:api/Customer/customerOtp
-        [HttpPost]        
+        [HttpPost]
         public ActionResult customerOtp(CustomerCollection cust)
         {
             //var handler = new JwtSecurityTokenHandler();
@@ -124,11 +134,11 @@ namespace HolidayTrip.Controllers
             var result = mongoCollection.Find<CustomerCollection>(ag => ag.Mobile == cust.Mobile && ag.OTP == cust.OTP).ToList();
             if (result.Count == 1)
             {
-                return Ok(new { msg = "Valid User" ,token});
+                return Ok(new { msg = "Valid User", token });
             }
             else
             {
-                return Ok(new { msg = "Invalid User" ,token});
+                return Ok(new { msg = "Invalid User", token });
             }
         }
 
@@ -159,12 +169,39 @@ namespace HolidayTrip.Controllers
 
         // PUT: api/Customer/5
         [HttpPut("{id}")]
-        public ActionResult Update(string id, CustomerCollection value)
+        public ActionResult Update(string id)
         {
+            var Jdata = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(Request.Form["data"]);
+            Jdata.Property("id").Remove();
+            CustomerCollection data = JsonConvert.DeserializeObject<CustomerCollection>(Jdata.ToString());
             mongoCollection = GetMongoCollection();
             var objId = new ObjectId(id);
-            var result = mongoCollection.ReplaceOne(lm => lm.Id==objId, value);
-            return Ok(new { msg = "Details Updated", data = value });
+            var result = mongoCollection.ReplaceOne(lm => lm.Id == objId, data);
+            return Ok(new { msg = "Details Updated", data = data });
+        }
+
+
+        [HttpGet("{id}")]
+        public ActionResult customerInquiry (string id)
+        {
+            mongoDatabase = GetMongoDatabase();
+            var inq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").AsQueryable().Where(cu => cu.CustomerId=="5de29a74e815c02020f39f40");
+            var pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable();
+            var agent = mongoDatabase.GetCollection<AgentCollection>("AgentCollection").AsQueryable();
+
+            //var qu = from p in pack.AsQueryable()
+            //         join a in agent.AsQueryable() on p.AgentId equals a.IdAsString into data
+            //         select new { package = p, agent = data };
+
+
+            var query = from i in inq
+                        ///join a in agent on i.AgentId equals a.IdAsString into AgentData 
+                        join p in pack on i.PackageId equals p.IdAsString into PackData
+                        ///select new { inq = i,agent=AgentData};
+                        select new { inq = i, pack = PackData };
+
+            var result = query.ToList();
+            return Ok(result);
         }
 
         // DELETE: api/ApiWithActions/5

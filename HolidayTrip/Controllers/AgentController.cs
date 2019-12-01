@@ -84,9 +84,9 @@ namespace HolidayTrip.Controllers
         // PUT: api/Agent/5
         [HttpPut("{id}")]
         public ActionResult Put(string id)
-        {         
-            //try
-            //{
+        {
+            try
+            {
 
                 var Jdata = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(Request.Form["data"]);
                 Jdata.Property("id").Remove();
@@ -117,11 +117,11 @@ namespace HolidayTrip.Controllers
             var objId = new ObjectId(id);
             var result = mongoCollection.ReplaceOne<AgentCollection>(lm => lm.Id == objId, data);
             return Ok(new { msg="Profile Updated"});
-            //}
-            //catch(Exception ex)
-            //{
-            //    return StatusCode(500, ex);
-            //}
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
         // DELETE: api/ApiWithActions/5

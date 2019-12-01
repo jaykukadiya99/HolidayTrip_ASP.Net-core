@@ -180,6 +180,34 @@ namespace HolidayTrip.Controllers
             {
                 var objId = new ObjectId(id);
                 mongoCollection = GetMongoCollection();
+                PackageCollection pack = mongoCollection.Find<PackageCollection>(lm => lm.Id == objId).FirstOrDefault();
+
+                var folderName = Path.Combine("Resources", "Images");
+                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+                
+                //delete main image
+                string path = pathToSave.ToString() + "\\" + pack.MainImage;
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
+                //delete brochure
+                path = pathToSave.ToString() + "\\" + pack.Brochure;
+                if(System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
+
+                foreach(var a in pack.Itinerary)
+                {
+                    path = pathToSave.ToString() + "\\" + a.Images;
+                    if (System.IO.File.Exists(path))
+                    {
+                        System.IO.File.Delete(path);
+                    }
+                }
+                
+
                 var result = mongoCollection.DeleteOne(ag => ag.Id == objId);
                 return Ok(new { msg = "Deleted" });
             }

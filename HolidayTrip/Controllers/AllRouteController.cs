@@ -129,31 +129,42 @@ namespace HolidayTrip.Controllers
             return Ok(result);
         }
 
-
-
-        // GET: api/AllRoute/5
-        //[HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        [HttpGet("{id}")]
+        public ActionResult agentInquiry(string id)
         {
-            return "value";
+            //var objCustId = new ObjectId(id);
+            mongoDatabase = GetMongoDatabase();
+            var inq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").AsQueryable().Where(ag => ag.AgentId== id);
+            var pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable();
+            //var agent = mongoDatabase.GetCollection<AgentCollection>("AgentCollection").AsQueryable();
+
+            //var qu = from p in pack.AsQueryable()
+            //         join a in agent.AsQueryable() on p.AgentId equals a.IdAsString into data
+            //         select new { package = p, agent = data };
+
+
+            var query = from i in inq
+                            //join a in agent on i.AgentId equals a.IdAsString into AgentData 
+                        join p in pack on i.PackageId equals p.IdAsString into PackData
+                        //select new { inq = i,agent=AgentData};
+                        //select new { inq = i, pack = PackData , agent= AgentData};
+                        select new { inq = i, pack = PackData };
+
+            var result = query.ToList().Reverse<Object>();
+            return Ok(result);
         }
 
-        // POST: api/AllRoute
-        [HttpPost]
-        public void Post([FromBody] string value)
+        //count total package and inquiry of agent
+        [HttpGet("{id}")]
+        public ActionResult agentCount(string id)
         {
-        }
+            mongoDatabase = GetMongoDatabase();
 
-        // PUT: api/AllRoute/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+            var totalPack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.AgentId == id).ToList().Count();
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var totalInq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").Find(iq => iq.AgentId == id && iq.InquiryStatus == 0).ToList().Count();            
+
+            return Ok(new { totalPackage=totalPack,totalInquiry= totalInq});            
         }
     }
 }

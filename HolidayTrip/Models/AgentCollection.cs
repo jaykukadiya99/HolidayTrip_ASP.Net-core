@@ -24,7 +24,6 @@ namespace HolidayTrip.Models
         public string AgentName { get; set; }
         [BsonElement]
         public string AgencyName { get; set; }
-
         [BsonElement]
         public AddressDetails AgencyAddress { get; set; }
         [BsonElement]
@@ -34,7 +33,7 @@ namespace HolidayTrip.Models
         [BsonElement]
         public string Website { get; set; }
         [BsonElement]
-        public IEnumerable<string> Images { get; set; }
+        public string Images { get; set; }
         [BsonElement]
         public string Pass { get; set; }
         [BsonElement]

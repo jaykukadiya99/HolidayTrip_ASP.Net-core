@@ -12,6 +12,9 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Net.Http.Headers;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace HolidayTrip.Controllers
 {
@@ -74,19 +77,51 @@ namespace HolidayTrip.Controllers
         {
             mongoCollection = GetMongoCollection();
             var objId = new ObjectId(id);
-
-            var result = mongoCollection.Find<AgentCollection>(ag => ag.Id == objId).FirstOrDefault();
+            var result = mongoCollection.Find<AgentCollection>(lm => lm.Id == objId).FirstOrDefault();
             return Ok(result);
         }
 
         // PUT: api/Agent/5
         [HttpPut("{id}")]
-        public ActionResult Put(String id, AgentCollection value)
-        {
+        public ActionResult Put(string id)
+        {         
+            //try
+            //{
+
+                var Jdata = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(Request.Form["data"]);
+                Jdata.Property("id").Remove();
+                AgentCollection data = JsonConvert.DeserializeObject<AgentCollection>(Jdata.ToString());
+
+            var AgencyImage = Request.Form.Files["agencyImage"];
+
+            if (AgencyImage!=null)
+            {               
+                var folderName = Path.Combine("Resources", "Images");
+                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+
+                var filename = DateTime.Now.ToFileTime() + "_" + ContentDispositionHeaderValue.Parse(AgencyImage.ContentDisposition).FileName.Trim('"');
+                var fullPath2 = Path.Combine(pathToSave, filename);
+
+                using (var stream = new FileStream(fullPath2, FileMode.Create))
+                {
+                    string path = pathToSave.ToString() + "\\" + data.Images;
+                    System.IO.File.Delete(path);
+                    AgencyImage.CopyTo(stream);
+                }
+
+                data.Images = filename;
+            }
+
             mongoCollection = GetMongoCollection();
             var objId = new ObjectId(id);
-            var result = mongoCollection.ReplaceOne(ag => ag.Id == objId, value);
-            return Ok(result);
+            var result = mongoCollection.ReplaceOne<AgentCollection>(lm => lm.Id == objId, data);
+            return Ok(new { msg="Profile Updated"});
+            //}
+            //catch(Exception ex)
+            //{
+            //    return StatusCode(500, ex);
+            //}
         }
 
         // DELETE: api/ApiWithActions/5

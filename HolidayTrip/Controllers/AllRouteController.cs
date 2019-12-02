@@ -162,9 +162,7 @@ namespace HolidayTrip.Controllers
             try
             {
                 mongoDatabase = GetMongoDatabase();
-
                 var totalPack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.AgentId == id).ToList().Count();
-
                 var totalInq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").Find(iq => iq.AgentId == id && iq.InquiryStatus == 0).ToList().Count();            
                 return Ok(new { totalPackage=totalPack,totalInquiry= totalInq});
             }
@@ -172,6 +170,22 @@ namespace HolidayTrip.Controllers
             {
                 return StatusCode(500, ex);
              }
+        }
+
+        [HttpGet]
+        public ActionResult adminCount()
+        {
+            try
+            {
+                mongoDatabase = GetMongoDatabase();
+                var totalAgnt = mongoDatabase.GetCollection<AgentCollection>("AgentCollection").Find(FilterDefinition<AgentCollection>.Empty).ToList().Count();
+                var totalUsr = mongoDatabase.GetCollection<CustomerCollection>("CustomerCollection").Find(FilterDefinition<CustomerCollection>.Empty).ToList().Count();
+                return Ok(new { totalAgent=totalAgnt, totalUser=totalUsr });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
 
         [HttpGet("{id}")]

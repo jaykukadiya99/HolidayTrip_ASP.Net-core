@@ -45,7 +45,7 @@ namespace HolidayTrip.Controllers
         [HttpPost]
         public ActionResult Post(AgentCollection value)
         {
-
+            value.AgencyAddress.AddressLine1 = " ";
             mongoCollection = GetMongoCollection();
             mongoCollection.InsertOne(value);            
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));

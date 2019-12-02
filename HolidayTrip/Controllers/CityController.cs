@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using HolidayTrip.Models;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 
 namespace HolidayTrip.Controllers
 {
@@ -54,8 +55,13 @@ namespace HolidayTrip.Controllers
 
         // PUT: api/City/5
         [HttpPut("{id}")]
-        public ActionResult Put(string id, CityCollection value)
+        //public ActionResult Put(string id, CityCollection value)
+        public ActionResult Put(string id)
         {
+            var Jdata = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(Request.Form["data"]);
+            Jdata.Property("id").Remove();
+            CityCollection value = JsonConvert.DeserializeObject<CityCollection>(Jdata.ToString());
+
             mongoCollection = GetMongoCollection();
             var objId = new ObjectId(id);
             var result = mongoCollection.ReplaceOne(ag => ag.Id == objId, value);

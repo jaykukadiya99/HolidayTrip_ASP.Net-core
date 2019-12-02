@@ -8,7 +8,7 @@ using HolidayTrip.Models;
 using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -206,11 +206,88 @@ namespace HolidayTrip.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
+        [HttpPost]
         public ActionResult customerFilter()
         {
-            //var pa = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.Catego).ToList();
-            return Ok();
+            PackageCollection pck = JsonConvert.DeserializeObject<PackageCollection>(Request.Form["filter"]);
+            mongoDatabase = GetMongoDatabase();            
+
+            var city = string.Join(",", pck.CityIncluded);
+            var category = string.Join(",", pck.CategoryId);
+
+            var pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city));
+
+            if (city!= "selectcity" && category != "selectcategory" && pck.Days != 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city) && pc.CategoryId.Contains(category) && pc.Days <= pck.Days);
+            }
+
+
+            else if(city != "selectcity" && category != "selectcategory" && pck.Days == 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city) && pc.CategoryId.Contains(category));
+            }
+
+            else if(city != "selectcity" && category == "selectcategory" && pck.Days != 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city) && pc.Days <= pck.Days);
+            }
+            else if (city == "selectcity" && category != "selectcategory" && pck.Days != 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CategoryId.Contains(category) && pc.Days <= pck.Days);
+            }
+            
+
+            else if (city != "selectcity" && category == "selectcategory" && pck.Days == 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city));
+            }
+
+            else if (city == "selectcity" && category != "selectcategory" && pck.Days == 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CategoryId.Contains(category));
+            }
+
+            else if (city == "selectcity" && category == "selectcategory" && pck.Days != 0)
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.Days <= pck.Days);
+            }
+
+
+            //mongoDatabase.GetCollection<PackageCollection>("PackageCollection").
+            //var pa = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.CityIncluded.Contains(city) && pc.CategoryId.Contains(category) && pc.Days <=pck.Days).ToList();
+
+            //var pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+            //    .Where(pc => pc.CityIncluded.Contains(city));
+            var agent = mongoDatabase.GetCollection<AgentCollection>("AgentCollection").AsQueryable();
+
+            var qu = from p in pack
+                     join a in agent on p.AgentId equals a.IdAsString into data
+                     select new { package = p, agent = data };
+            var result = qu.ToList();
+
+            if(result.Count()!=0)
+            {
+                return Ok(new { msg = "filter Data", data = result });
+            }
+            else
+            {
+                pack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").AsQueryable()
+                .Where(pc => pc.CityIncluded.Contains(city) || pc.CategoryId.Contains(category) || pc.Days <= pck.Days);
+                var allQu = from p in pack
+                         join a in agent on p.AgentId equals a.IdAsString into data
+                         select new { package = p, agent = data };
+                var Allresult = qu.ToList();
+                return Ok(new { msg = "filter Data Not found", data = Allresult });
+            }
         }
 
         // DELETE: api/ApiWithActions/5

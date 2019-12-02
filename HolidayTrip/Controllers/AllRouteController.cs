@@ -118,7 +118,7 @@ namespace HolidayTrip.Controllers
             }
         }
 
-        //package for admin profile
+        //package for agent profile
         [HttpGet("{id}")]
         public ActionResult AgentPackage(string id)
         {

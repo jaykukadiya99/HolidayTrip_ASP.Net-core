@@ -204,5 +204,15 @@ namespace HolidayTrip.Controllers
                 return StatusCode(500, ex);
             }
         }
+
+        [HttpGet("{id}/{status}")]
+        public ActionResult adminPackageStatus(string id,int status)
+        {
+            var objId = new ObjectId(id);
+            mongoDatabase = GetMongoDatabase();
+            var update = Builders<PackageCollection>.Update.Set("Status", status);
+            var result = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").UpdateOne(ag => ag.Id == objId, update);
+            return Ok(new { msg="Status Changed"});
+        }
     }
 }

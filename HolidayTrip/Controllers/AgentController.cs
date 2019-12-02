@@ -106,7 +106,10 @@ namespace HolidayTrip.Controllers
                 using (var stream = new FileStream(fullPath2, FileMode.Create))
                 {
                     string path = pathToSave.ToString() + "\\" + data.Images;
-                    System.IO.File.Delete(path);
+                        if(System.IO.File.Exists(path))
+                        {
+                            System.IO.File.Delete(path);
+                        }                    
                     AgencyImage.CopyTo(stream);
                 }
 

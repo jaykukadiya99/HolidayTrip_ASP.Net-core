@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using MongoDB.Bson;
 
 namespace HolidayTrip.Controllers
 {
@@ -158,13 +159,36 @@ namespace HolidayTrip.Controllers
         [HttpGet("{id}")]
         public ActionResult agentCount(string id)
         {
-            mongoDatabase = GetMongoDatabase();
+            try
+            {
+                mongoDatabase = GetMongoDatabase();
 
-            var totalPack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.AgentId == id).ToList().Count();
+                var totalPack = mongoDatabase.GetCollection<PackageCollection>("PackageCollection").Find(pc => pc.AgentId == id).ToList().Count();
 
-            var totalInq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").Find(iq => iq.AgentId == id && iq.InquiryStatus == 0).ToList().Count();            
+                var totalInq = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").Find(iq => iq.AgentId == id && iq.InquiryStatus == 0).ToList().Count();            
+                return Ok(new { totalPackage=totalPack,totalInquiry= totalInq});
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+             }
+        }
 
-            return Ok(new { totalPackage=totalPack,totalInquiry= totalInq});            
+        [HttpGet("{id}")]
+        public ActionResult inquiryComplete(string id)
+        {
+            try
+            {
+                var objId = new ObjectId(id);
+                mongoDatabase = GetMongoDatabase();
+                var update = Builders<InquiryCollection>.Update.Set("InquiryStatus", 1);
+                var result = mongoDatabase.GetCollection<InquiryCollection>("InquiryCollection").UpdateOne(ag => ag.Id == objId, update);
+                return Ok(new { msg = "InquiryCompleted" });
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
         }
     }
 }

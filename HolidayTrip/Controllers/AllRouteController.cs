@@ -38,23 +38,23 @@ namespace HolidayTrip.Controllers
 
                 if(result.Count==1)
                 {
-                    var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
-                    var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                    //var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                    //var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
-                    var tokeOptions = new JwtSecurityToken(
-                        issuer: "http://localhost:58030",
-                        audience: "http://localhost:4200",
-                        claims: new List<Claim>() {
-                        new Claim(JwtRegisteredClaimNames.Typ,"Admin"),
-                        new Claim(JwtRegisteredClaimNames.NameId,result.FirstOrDefault().Id.ToString()),
-                        new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(result.FirstOrDefault())),
-                        },
-                        //expires: DateTime.Now.AddMinutes(5),
-                        signingCredentials: signinCredentials
-                    );
+                    //var tokeOptions = new JwtSecurityToken(
+                    //    issuer: "http://localhost:58030",
+                    //    audience: "http://localhost:4200",
+                    //    claims: new List<Claim>() {
+                    //    new Claim(JwtRegisteredClaimNames.Typ,"Admin"),
+                    //    new Claim(JwtRegisteredClaimNames.NameId,result.FirstOrDefault().Id.ToString()),
+                    //    new Claim(JwtRegisteredClaimNames.Sub, Newtonsoft.Json.JsonConvert.SerializeObject(result.FirstOrDefault())),
+                    //    },
+                    //    //expires: DateTime.Now.AddMinutes(5),
+                    //    signingCredentials: signinCredentials
+                    //);
 
-                    var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-                    return Ok(new { Token = tokenString });
+                    //var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+                    return Ok(new { Token = result[0].Id });
                 }
                 else
                 {
